@@ -1,34 +1,39 @@
 <template>
   <div>
-    <v-stage :config="{height: height, width: width}" @tap="onParentClick"
+    <v-stage :config="{height: height, width: width}" @tap="onParentClick" @click="onParentClick"
              :style="{transform: 'scale(' + scale +')', 'transform-origin': '0 0', 'margin-bottom': '-' + height*(1-scale) + 'px'}">
       <v-layer>
         <v-rect
-          :config="{x:0,y:0,width:width,height:height,stroke: 'cyan',strokeWidth: 1 / this.scale, dash: [5 / this.scale, 5 / this.scale]}"></v-rect>
+          :config="{x:0,y:0,width:width,height:height,stroke: 'cyan',strokeWidth: 1 / this.scale, dash: [5 / this.scale, 5 / this.scale],preventDefault:false}"></v-rect>
         <v-rect
-          :config="{x:4,y:16,width:slotSize+24,height:slotSize*24+24,stroke: 'gold',strokeWidth: 1 / this.scale, dash: [3 / this.scale, 3 / this.scale]}"></v-rect>
+          :config="{x:4,y:16,width:slotSize+24,height:slotSize*24+24,stroke: 'gold',strokeWidth: 1 / this.scale, dash: [3 / this.scale, 3 / this.scale],preventDefault:false}"></v-rect>
         <v-rect
-          :config="{x:16,y:height - slotSize - 28,width:slotSize*24+24,height:slotSize+24,stroke: 'gold',strokeWidth: 1 / this.scale, dash: [3 / this.scale, 3 / this.scale]}"></v-rect>
-        <v-group @tap="toggle">
+          :config="{x:16,y:height - slotSize - 28,width:slotSize*24+24,height:slotSize+24,stroke: 'gold',strokeWidth: 1 / this.scale, dash: [3 / this.scale, 3 / this.scale],preventDefault:false}"></v-rect>
+        <v-group @tap="toggle" @click="toggle">
           <v-rect :config="getButtonConfig(config.vToggle, 'lightyellow')"></v-rect>
           <v-text :config="getTextConfig(config.vToggle, $t('toggle'))"></v-text>
         </v-group>
       </v-layer>
       <v-layer>
         <v-group v-for="button in config.buttons" :key="firstNotEmpty(button.id, button.key)"
-                 v-if="button.id !== currentButtonId" @tap="() => onActivated(button)">
+                 v-if="button.id !== currentButtonId" @tap="() => onActivated(button)"
+                 @click="() => onActivated(button)">
           <v-rect :config="getButtonConfig(button, 'darkorange')"></v-rect>
           <v-text :config="getTextConfig(button, firstNotEmpty(button.alias, button.key))"></v-text>
         </v-group>
+      </v-layer>
+      <v-layer v-if="toggleState">
         <v-group v-for="button in config.buttonsExtend" :key="firstNotEmpty(button.id, button.key)"
-                 v-if="toggleState && button.id !== currentButtonId" @tap="() => onActivated(button)">
+                 v-if="button.id !== currentButtonId" @tap="() => onActivated(button)"
+                 @click="() => onActivated(button)">
           <v-rect :config="getButtonConfig(button, 'lightyellow')"></v-rect>
           <v-text :config="getTextConfig(button, firstNotEmpty(button.alias, button.key))"></v-text>
         </v-group>
       </v-layer>
       <v-layer v-if="!isEmpty(currentButtonId)">
-        <v-rect :config="getButtonConfig(currentButton, 'lightcyan')"></v-rect>
-        <v-text :config="getTextConfig(currentButton, firstNotEmpty(currentButton.alias, currentButton.key))"></v-text>
+        <v-rect :config="getButtonConfig(currentButton, 'lightcyan')" ref="currentButtonRect"></v-rect>
+        <v-text :config="getTextConfig(currentButton, firstNotEmpty(currentButton.alias, currentButton.key))"
+                ref="currentButtonText"></v-text>
       </v-layer>
     </v-stage>
     <el-drawer
@@ -308,7 +313,7 @@
       };
       window.setJson(window.webObject.getText());
       window.getJsonCallback = () => {
-        let conf = JSON.parse(JSON.stringify(this.config));
+        let conf = this.deepCopy(this.config);
         for (let button of conf.buttons) {
           delete button.id;
         }
@@ -320,10 +325,9 @@
     },
     methods: {
       getTextConfig: function (button, text) {
-        if(button === undefined) {
+        if (button === undefined) {
           return {};
         }
-        debugger
         return {
           x: button.rectangle.X,
           y: button.rectangle.Y,
@@ -335,10 +339,11 @@
           fontSize: Math.sqrt(144 / this.scale),
           perfectDrawEnabled: false,
           transformsEnabled: 'position',
+          listening: false,
         };
       },
       getButtonConfig: function (button, color) {
-        if(button === undefined) {
+        if (button === undefined) {
           return {};
         }
         return {
@@ -356,10 +361,10 @@
           hitStrokeWidth: 0,
         };
       },
-      querySearch: function(queryString, cb) {
-        let results = queryString ? this.options.filter((option)=> option.value.toLowerCase().includes(queryString.toLowerCase())) : this.options;
+      querySearch: function (queryString, cb) {
+        let results = queryString ? this.options.filter((option) => option.value.toLowerCase().includes(queryString.toLowerCase())) : this.options;
         // 调用 callback 返回建议列表的数据
-        results.sort((a,b)=>a.value.length-b.value.length);
+        results.sort((a, b) => a.value.length - b.value.length);
         cb(results);
       },
       toggle: function (event) {
@@ -367,21 +372,28 @@
         event.cancelBubble = true;
       },
       onActivated: function (button) {
+        if (this.isEmpty(this.currentButtonId)) {
+          this.$nextTick(() => {
+            this.$nextTick(() => {
+              this.$refs.currentButtonRect.getNode().cache();
+              this.$refs.currentButtonText.getNode().cache();
+            });
+          });
+        }
         this.currentButton = button;
         this.currentButtonId = button.id;
       },
-      getNodeParentFor(node, parentName, attrName){
-        if(node[attrName] !== undefined) {
+      getNodeParentFor(node, parentName, attrName) {
+        if (node[attrName] !== undefined) {
           return node;
-        }
-        else if(node[parentName] !== undefined && node[parentName] != null) {
+        } else if (node[parentName] !== undefined && node[parentName] != null) {
           return this.getNodeParentFor(node[parentName], parentName, attrName);
         }
         return null;
       },
       onParentClick: function (event) {
         let parent = this.getNodeParentFor(event.target, 'parent', 'getPointerPosition');
-        if(parent == null)
+        if (parent == null)
           return;
         let dx = parent.getPointerPosition().x - (this.currentButton.rectangle.X + this.currentButton.rectangle.Width / 2);
         let dy = parent.getPointerPosition().y - (this.currentButton.rectangle.Y + this.currentButton.rectangle.Height / 2);
@@ -447,13 +459,16 @@
             }
           });
         }
-        if (index >= 0){
+        if (index >= 0) {
           list.splice(index, 1);
           this.currentButtonId = null;
         }
       },
       firstNotEmpty: function (alias, key) {
         return this.isEmpty(alias) ? key : alias;
+      },
+      deepCopy: function (obj) {
+        return JSON.parse(JSON.stringify(obj));
       },
       //判断字符是否为空的方法
       isEmpty: function (obj) {
