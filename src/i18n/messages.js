@@ -10,9 +10,13 @@ const messages = {
     alias: "Alias",
     command: "Command",
     transparency: "Transparency",
+    X: "X",
+    Y: "Y",
+    Width: "Width",
+    Height: "Height",
     ...enLocale
   },
-  zh: {
+  "zh-CN": {
     toggle: "切换",
     add: "新增",
     remove: "移除",
@@ -20,6 +24,10 @@ const messages = {
     alias: "别名",
     command: "命令",
     transparency: "透明度",
+    X: "X",
+    Y: "Y",
+    Width: "宽",
+    Height: "高",
     ...zhLocale
   }
 }

@@ -4,27 +4,33 @@ import Vue from 'vue'
 import App from './App'
 import VueI18n from 'vue-i18n'
 import messages from "./i18n/messages";
-import VueDraggableResizable from 'vue-draggable-resizable'
-import { Row, Col, Button, Select, Option, Input, InputNumber, Slider, ColorPicker, Form, FormItem, Drawer } from 'element-ui';
+import {
+  Row,
+  Col,
+  Button,
+  Autocomplete,
+  Option,
+  Input,
+  Slider,
+  ColorPicker,
+  Form,
+  FormItem,
+  Drawer
+} from 'element-ui';
 import ElementLocale from 'element-ui/lib/locale'
 import VueKonva from 'vue-konva'
-
-// optionally import default styles
-import 'vue-draggable-resizable/dist/VueDraggableResizable.css'
 
 // register component to use
 Vue.config.productionTip = false
 Vue.use(VueI18n)
 
 Vue.use(VueKonva)
-Vue.component('vue-draggable-resizable', VueDraggableResizable)
-Vue.component(Row.name, Row, );
+Vue.component(Row.name, Row,);
 Vue.component(Col.name, Col);
 Vue.component(Button.name, Button);
-Vue.component(Select.name, Select);
+Vue.component(Autocomplete.name, Autocomplete);
 Vue.component(Option.name, Option);
 Vue.component(Input.name, Input);
-Vue.component(InputNumber.name, InputNumber);
 Vue.component(Slider.name, Slider);
 Vue.component(ColorPicker.name, ColorPicker);
 Vue.component(Form.name, Form);
@@ -37,16 +43,18 @@ const i18n = new VueI18n({
   messages, // set locale messages
 })
 window.onresize = setHtmlFontSize;
-function setHtmlFontSize(){
+
+function setHtmlFontSize() {
   const htmlWidth = document.documentElement.clientWidth || document.body.clientWidth;
   const htmlDom = document.getElementsByTagName('html')[0];
   htmlDom.style.fontSize = htmlWidth / 10 + 'px';
-};
+}
+
 setHtmlFontSize();
 /* eslint-disable no-new */
 new Vue({
   i18n,
   el: '#app',
-  components: { App },
+  components: {App},
   template: '<App/>'
 })

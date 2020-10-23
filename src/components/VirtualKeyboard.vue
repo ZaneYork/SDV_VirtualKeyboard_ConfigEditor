@@ -1,49 +1,41 @@
 <template>
   <div>
-    <div :grid='grid' @click="onParentClick"
-         :style="{height: height+'px', width: width + 'px',
-                  border: '1px solid #13a8d5', position: 'relative',
-                  transform: 'scale(' + scale +')', 'transform-origin': '0 0',
-                  'margin-bottom': '-' + height*(1-scale) + 'px'}">
-      <vue-draggable-resizable :parent="true" className="vdr button button-vtg"
-                               @dragging="(x,y)=>onDrag(config.vToggle,x,y)" :resizable="false" :scale="scale"
-                               @resizing="(x, y, width, height)=>onResize(config.vToggle,x, y, width, height)"
-                               :w="config.vToggle.rectangle.Width"
-                               :h="config.vToggle.rectangle.Height"
-                               :x="config.vToggle.rectangle.X"
-                               :y="config.vToggle.rectangle.Y">
-        <p class="button-text" @click="toggle">{{$t('toggle')}}</p>
-      </vue-draggable-resizable>
-      <vue-draggable-resizable v-for="button in config.buttons" :key="firstNotEmpty(button.id, button.key)"
-                               :parent="true" className="vdr button" :resizable="false" :scale="scale"
-                               @dragging="(x,y)=>onDrag(button,x,y)"
-                               @resizing="(x, y, width, height)=>onResize(button,x, y, width, height)"
-                               @activated="()=>onActivated(button)"
-                               :w="button.rectangle.Width"
-                               :h="button.rectangle.Height"
-                               :x="button.rectangle.X"
-                               :y="button.rectangle.Y">
-        <p class="button-text">{{firstNotEmpty(button.alias, button.key)}}</p>
-      </vue-draggable-resizable>
-      <vue-draggable-resizable v-for="button in config.buttonsExtend" :key="firstNotEmpty(button.id, button.key)"
-                               :parent="true" className="vdr button button-ext" v-if="toggleState" :resizable="false" :scale="scale"
-                               @dragging="(x,y)=>onDrag(button,x,y)"
-                               @resizing="(x, y, width, height)=>onResize(button,x, y, width, height)"
-                               @activated="()=>onActivated(button)"
-                               :w="button.rectangle.Width"
-                               :h="button.rectangle.Height"
-                               :x="button.rectangle.X"
-                               :y="button.rectangle.Y">
-        <p class="button-text">{{firstNotEmpty(button.alias, button.key)}}</p>
-      </vue-draggable-resizable>
-    </div>
+    <v-stage :config="{height: height, width: width}" @tap="onParentClick"
+             :style="{transform: 'scale(' + scale +')', 'transform-origin': '0 0', 'margin-bottom': '-' + height*(1-scale) + 'px'}">
+      <v-layer>
+        <v-rect
+          :config="{x:0,y:0,width:width,height:height,stroke: 'cyan',strokeWidth: 1 / this.scale, dash: [5 / this.scale, 5 / this.scale]}"></v-rect>
+        <v-rect
+          :config="{x:4,y:16,width:slotSize+24,height:slotSize*24+24,stroke: 'gold',strokeWidth: 1 / this.scale, dash: [3 / this.scale, 3 / this.scale]}"></v-rect>
+        <v-rect
+          :config="{x:16,y:height - slotSize - 28,width:slotSize*24+24,height:slotSize+24,stroke: 'gold',strokeWidth: 1 / this.scale, dash: [3 / this.scale, 3 / this.scale]}"></v-rect>
+        <v-group @tap="toggle">
+          <v-rect :config="getButtonConfig(config.vToggle, 'lightyellow')"></v-rect>
+          <v-text :config="getTextConfig(config.vToggle, $t('toggle'))"></v-text>
+        </v-group>
+      </v-layer>
+      <v-layer>
+        <v-group v-for="button in config.buttons" :key="firstNotEmpty(button.id, button.key)"
+                 v-if="button.id !== currentButtonId" @tap="() => onActivated(button)">
+          <v-rect :config="getButtonConfig(button, 'darkorange')"></v-rect>
+          <v-text :config="getTextConfig(button, firstNotEmpty(button.alias, button.key))"></v-text>
+        </v-group>
+        <v-group v-for="button in config.buttonsExtend" :key="firstNotEmpty(button.id, button.key)"
+                 v-if="toggleState && button.id !== currentButtonId" @tap="() => onActivated(button)">
+          <v-rect :config="getButtonConfig(button, 'lightyellow')"></v-rect>
+          <v-text :config="getTextConfig(button, firstNotEmpty(button.alias, button.key))"></v-text>
+        </v-group>
+      </v-layer>
+      <v-layer v-if="!isEmpty(currentButtonId)">
+        <v-rect :config="getButtonConfig(currentButton, 'lightcyan')"></v-rect>
+        <v-text :config="getTextConfig(currentButton, firstNotEmpty(currentButton.alias, currentButton.key))"></v-text>
+      </v-layer>
+    </v-stage>
     <el-drawer
       title=""
       :visible.sync="drawer"
-      :direction="rtl"
+      direction="rtl"
       size="40%"
-      :wrapperClosable="false"
-      :show-close="true"
       :with-header="true">
       <el-form ref="form" label-width="50px">
         <el-form-item :label="$t('X')">
@@ -76,24 +68,17 @@
         </el-form-item>
       </el-form>
     </el-drawer>
-    <draggable
-      :distanceRight='0'
-      :distanceBottom='100'
-      :isScrollHidden='false'
-      :isCanDraggable='true'
-      :zIndex="100">
-      <el-button type="primary" icon="el-icon-edit" circle @click="drawer=true"></el-button>
-    </draggable>
+    <el-button v-if="landscape && !isEmpty(currentButtonId)"
+               type="primary" icon="el-icon-edit" circle @click="drawer=true"
+               class="button-float"></el-button>
     <el-form ref="form" label-width="80px">
       <el-form-item :label="$t('key')">
-        <el-select v-model="currentButton.key" filterable :placeholder="$t('key')">
-          <el-option
-            v-for="item in options"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value">
-          </el-option>
-        </el-select>
+        <el-autocomplete
+          class="inline-input"
+          v-model="currentButton.key"
+          :fetch-suggestions="querySearch"
+          :placeholder="$t('key')"
+        ></el-autocomplete>
       </el-form-item>
       <el-form-item :label="$t('alias')">
         <el-col :span="10">
@@ -157,18 +142,19 @@
 
 <script>
   import {v4 as uuidv4} from 'uuid';
-  import Draggable from 'vue-draggable-float'
 
   export default {
-    components:{Draggable},
     data: function () {
       return {
         grid: [5, 5],
         scale: 0.4,
+        slotSize: 80,
         width: 1280,
         height: 720,
         toggleState: true,
         drawer: false,
+        landscape: false,
+        currentButtonId: '',
         currentButton: {
           key: '',
           alias: '',
@@ -183,49 +169,10 @@
           {label: "MouseMiddle", value: "MouseMiddle"},
           {label: "MouseX1", value: "MouseX1"},
           {label: "MouseX2", value: "MouseX2"},
-          {label: "ControllerA", value: "ControllerA"},
-          {label: "ControllerB", value: "ControllerB"},
-          {label: "ControllerX", value: "ControllerX"},
-          {label: "ControllerY", value: "ControllerY"},
-          {label: "ControllerBack", value: "ControllerBack"},
-          {label: "ControllerStart", value: "ControllerStart"},
-          {label: "DPadUp", value: "DPadUp"},
-          {label: "DPadDown", value: "DPadDown"},
-          {label: "DPadLeft", value: "DPadLeft"},
-          {label: "DPadRight", value: "DPadRight"},
-          {label: "LeftShoulder", value: "LeftShoulder"},
-          {label: "RightShoulder", value: "RightShoulder"},
-          {label: "LeftTrigger", value: "LeftTrigger"},
-          {label: "RightTrigger", value: "RightTrigger"},
-          {label: "LeftStick", value: "LeftStick"},
-          {label: "RightStick", value: "RightStick"},
-          {label: "BigButton", value: "BigButton"},
-          {label: "LeftThumbstickLeft", value: "LeftThumbstickLeft"},
-          {label: "LeftThumbstickRight", value: "LeftThumbstickRight"},
-          {label: "LeftThumbstickDown", value: "LeftThumbstickDown"},
-          {label: "LeftThumbstickUp", value: "LeftThumbstickUp"},
-          {label: "RightThumbstickLeft", value: "RightThumbstickLeft"},
-          {label: "RightThumbstickRight", value: "RightThumbstickRight"},
-          {label: "RightThumbstickDown", value: "RightThumbstickDown"},
-          {label: "RightThumbstickUp", value: "RightThumbstickUp"},
           {label: "A", value: "A"},
-          {label: "Add", value: "Add"},
-          {label: "Apps", value: "Apps"},
-          {label: "Attn", value: "Attn"},
           {label: "B", value: "B"},
-          {label: "Back", value: "Back"},
-          {label: "BrowserBack", value: "BrowserBack"},
-          {label: "BrowserFavorites", value: "BrowserFavorites"},
-          {label: "BrowserForward", value: "BrowserForward"},
-          {label: "BrowserHome", value: "BrowserHome"},
-          {label: "BrowserRefresh", value: "BrowserRefresh"},
-          {label: "BrowserSearch", value: "BrowserSearch"},
-          {label: "BrowserStop", value: "BrowserStop"},
           {label: "C", value: "C"},
           {label: "CapsLock", value: "CapsLock"},
-          {label: "ChatPadGreen", value: "ChatPadGreen"},
-          {label: "ChatPadOrange", value: "ChatPadOrange"},
-          {label: "Crsel", value: "Crsel"},
           {label: "D", value: "D"},
           {label: "D0", value: "D0"},
           {label: "D1", value: "D1"},
@@ -244,28 +191,13 @@
           {label: "E", value: "E"},
           {label: "End", value: "End"},
           {label: "Enter", value: "Enter"},
-          {label: "EraseEof", value: "EraseEof"},
           {label: "Escape", value: "Escape"},
-          {label: "Execute", value: "Execute"},
-          {label: "Exsel", value: "Exsel"},
           {label: "F", value: "F"},
           {label: "F1", value: "F1"},
           {label: "F10", value: "F10"},
           {label: "F11", value: "F11"},
           {label: "F12", value: "F12"},
-          {label: "F13", value: "F13"},
-          {label: "F14", value: "F14"},
-          {label: "F15", value: "F15"},
-          {label: "F16", value: "F16"},
-          {label: "F17", value: "F17"},
-          {label: "F18", value: "F18"},
-          {label: "F19", value: "F19"},
           {label: "F2", value: "F2"},
-          {label: "F20", value: "F20"},
-          {label: "F21", value: "F21"},
-          {label: "F22", value: "F22"},
-          {label: "F23", value: "F23"},
-          {label: "F24", value: "F24"},
           {label: "F3", value: "F3"},
           {label: "F4", value: "F4"},
           {label: "F5", value: "F5"},
@@ -278,27 +210,16 @@
           {label: "Help", value: "Help"},
           {label: "Home", value: "Home"},
           {label: "I", value: "I"},
-          {label: "ImeConvert", value: "ImeConvert"},
-          {label: "ImeNoConvert", value: "ImeNoConvert"},
           {label: "Insert", value: "Insert"},
           {label: "J", value: "J"},
           {label: "K", value: "K"},
-          {label: "Kana", value: "Kana"},
-          {label: "Kanji", value: "Kanji"},
           {label: "L", value: "L"},
-          {label: "LaunchApplication1", value: "LaunchApplication1"},
-          {label: "LaunchApplication2", value: "LaunchApplication2"},
-          {label: "LaunchMail", value: "LaunchMail"},
           {label: "Left", value: "Left"},
           {label: "LeftAlt", value: "LeftAlt"},
           {label: "LeftControl", value: "LeftControl"},
           {label: "LeftShift", value: "LeftShift"},
           {label: "LeftWindows", value: "LeftWindows"},
           {label: "M", value: "M"},
-          {label: "MediaNextTrack", value: "MediaNextTrack"},
-          {label: "MediaPlayPause", value: "MediaPlayPause"},
-          {label: "MediaPreviousTrack", value: "MediaPreviousTrack"},
-          {label: "MediaStop", value: "MediaStop"},
           {label: "Multiply", value: "Multiply"},
           {label: "N", value: "N"},
           {label: "NumLock", value: "NumLock"},
@@ -313,14 +234,11 @@
           {label: "NumPad8", value: "NumPad8"},
           {label: "NumPad9", value: "NumPad9"},
           {label: "O", value: "O"},
-          {label: "Oem8", value: "Oem8"},
-          {label: "OemAuto", value: "OemAuto"},
           {label: "OemBackslash", value: "OemBackslash"},
           {label: "OemClear", value: "OemClear"},
           {label: "OemCloseBrackets", value: "OemCloseBrackets"},
           {label: "OemComma", value: "OemComma"},
           {label: "OemCopy", value: "OemCopy"},
-          {label: "OemEnlW", value: "OemEnlW"},
           {label: "OemMinus", value: "OemMinus"},
           {label: "OemOpenBrackets", value: "OemOpenBrackets"},
           {label: "OemPeriod", value: "OemPeriod"},
@@ -331,14 +249,12 @@
           {label: "OemSemicolon", value: "OemSemicolon"},
           {label: "OemTilde", value: "OemTilde"},
           {label: "P", value: "P"},
-          {label: "Pa1", value: "Pa1"},
           {label: "PageDown", value: "PageDown"},
           {label: "PageUp", value: "PageUp"},
           {label: "Pause", value: "Pause"},
           {label: "Play", value: "Play"},
           {label: "Print", value: "Print"},
           {label: "PrintScreen", value: "PrintScreen"},
-          {label: "ProcessKey", value: "ProcessKey"},
           {label: "Q", value: "Q"},
           {label: "R", value: "R"},
           {label: "Right", value: "Right"},
@@ -349,7 +265,6 @@
           {label: "S", value: "S"},
           {label: "Scroll", value: "Scroll"},
           {label: "Select", value: "Select"},
-          {label: "SelectMedia", value: "SelectMedia"},
           {label: "Separator", value: "Separator"},
           {label: "Sleep", value: "Sleep"},
           {label: "Space", value: "Space"},
@@ -365,8 +280,7 @@
           {label: "W", value: "W"},
           {label: "X", value: "X"},
           {label: "Y", value: "Y"},
-          {label: "Z", value: "Z"},
-          {label: "Zoom", value: "Zoom"},
+          {label: "Z", value: "Z"}
         ],
         config: {}
       }
@@ -380,6 +294,8 @@
       this.$i18n.locale = window.webObject.getLanguage();
       this.width = window.webObject.getWidth();
       this.height = window.webObject.getHeight();
+      this.scale = window.webObject.getScale();
+      this.landscape = window.webObject.isLandscape();
       window.setJson = (json) => {
         let config = JSON.parse(json);
         for (let button of config.buttons) {
@@ -392,36 +308,89 @@
       };
       window.setJson(window.webObject.getText());
       window.getJsonCallback = () => {
-        return this.config;
+        let conf = JSON.parse(JSON.stringify(this.config));
+        for (let button of conf.buttons) {
+          delete button.id;
+        }
+        for (let button of conf.buttonsExtend) {
+          delete button.id;
+        }
+        return conf;
       };
     },
     methods: {
-      toggle: function () {
+      getTextConfig: function (button, text) {
+        if(button === undefined) {
+          return {};
+        }
+        debugger
+        return {
+          x: button.rectangle.X,
+          y: button.rectangle.Y,
+          width: button.rectangle.Width,
+          height: button.rectangle.Height,
+          text: text,
+          align: 'center',
+          verticalAlign: 'middle',
+          fontSize: Math.sqrt(144 / this.scale),
+          perfectDrawEnabled: false,
+          transformsEnabled: 'position',
+        };
+      },
+      getButtonConfig: function (button, color) {
+        if(button === undefined) {
+          return {};
+        }
+        return {
+          x: button.rectangle.X,
+          y: button.rectangle.Y,
+          width: button.rectangle.Width,
+          height: button.rectangle.Height,
+          opacity: button.transparency,
+          fill: color,
+          stroke: 'black',
+          strokeWidth: 2 / this.scale,
+          perfectDrawEnabled: false,
+          transformsEnabled: 'position',
+          shadowForStrokeEnabled: false,
+          hitStrokeWidth: 0,
+        };
+      },
+      querySearch: function(queryString, cb) {
+        let results = queryString ? this.options.filter((option)=> option.value.toLowerCase().includes(queryString.toLowerCase())) : this.options;
+        // 调用 callback 返回建议列表的数据
+        results.sort((a,b)=>a.value.length-b.value.length);
+        cb(results);
+      },
+      toggle: function (event) {
         this.toggleState = !this.toggleState;
-      },
-      onResize: function (button, x, y, width, height) {
-        button.rectangle.X = x
-        button.rectangle.Y = y
-        button.rectangle.Width = width
-        button.rectangle.Height = height
-      },
-      onDrag: function (button, x, y) {
-        button.rectangle.X = x
-        button.rectangle.Y = y
+        event.cancelBubble = true;
       },
       onActivated: function (button) {
         this.currentButton = button;
+        this.currentButtonId = button.id;
+      },
+      getNodeParentFor(node, parentName, attrName){
+        if(node[attrName] !== undefined) {
+          return node;
+        }
+        else if(node[parentName] !== undefined && node[parentName] != null) {
+          return this.getNodeParentFor(node[parentName], parentName, attrName);
+        }
+        return null;
       },
       onParentClick: function (event) {
-        let dx = event.clientX / this.scale - (this.currentButton.rectangle.X + this.currentButton.rectangle.Width / 2);
-        let dy = event.clientY / this.scale - (this.currentButton.rectangle.Y + this.currentButton.rectangle.Height / 2);
+        let parent = this.getNodeParentFor(event.target, 'parent', 'getPointerPosition');
+        if(parent == null)
+          return;
+        let dx = parent.getPointerPosition().x - (this.currentButton.rectangle.X + this.currentButton.rectangle.Width / 2);
+        let dy = parent.getPointerPosition().y - (this.currentButton.rectangle.Y + this.currentButton.rectangle.Height / 2);
         let adx = Math.abs(dx);
         let ady = Math.abs(dy);
         if (adx > ady) {
           if (adx < this.currentButton.rectangle.Width / 2) {
             return;
           }
-          debugger
           if (dx > 0) {
             this.currentButton.rectangle.X += this.grid[0];
           } else {
@@ -431,7 +400,6 @@
           if (ady < this.currentButton.rectangle.Height / 2) {
             return;
           }
-          debugger
           if (dy > 0) {
             this.currentButton.rectangle.Y += this.grid[1];
           } else {
@@ -493,29 +461,10 @@
 </script>
 
 <style scoped>
-  .button-text {
-    font-size: medium
-  }
-  .vdr {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .button {
-    background-color: darkorange;
-  }
-
-  .button.active {
-    border-color: deepskyblue;
-    border-width: thick;
-  }
-
-  .button-vtg {
-    background-color: lightyellow;
-  }
-
-  .button-ext {
-    background-color: lightgoldenrodyellow;
+  .button-float {
+    position: fixed;
+    z-index: 99;
+    right: 1%;
+    top: 5%;
   }
 </style>
