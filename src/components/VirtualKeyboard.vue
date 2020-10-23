@@ -446,8 +446,10 @@
             }
           });
         }
-        if (index >= 0)
+        if (index >= 0){
           list.splice(index, 1);
+          this.currentButtonId = null;
+        }
       },
       firstNotEmpty: function (alias, key) {
         return this.isEmpty(alias) ? key : alias;
