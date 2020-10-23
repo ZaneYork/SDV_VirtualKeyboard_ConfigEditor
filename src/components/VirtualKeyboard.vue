@@ -429,6 +429,7 @@
         }
         target.push(newButton);
         this.currentButton = newButton;
+        this.currentButtonId = newButton.id;
       },
       onRemoveButton: function () {
         let list = this.config.buttons;
