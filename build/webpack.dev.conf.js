@@ -13,9 +13,18 @@ const portfinder = require('portfinder')
 const HOST = process.env.HOST
 const PORT = process.env.PORT && Number(process.env.PORT)
 
+const iconFontLoader = {
+  test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
+  loader: 'url-loader',
+  options: {
+    limit: 10000,
+    name: utils.assetsPath('fonts/[name].[ext]')
+  }
+}
+
 const devWebpackConfig = merge(baseWebpackConfig, {
   module: {
-    rules: utils.styleLoaders({ sourceMap: config.dev.cssSourceMap, usePostCSS: true })
+    rules: utils.styleLoaders({ sourceMap: config.dev.cssSourceMap, usePostCSS: true}).concat([iconFontLoader])
   },
   // cheap-module-eval-source-map is faster for development
   devtool: config.dev.devtool,

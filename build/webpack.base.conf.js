@@ -56,16 +56,6 @@ module.exports = {
           limit: 10000,
           name: utils.assetsPath('media/[name].[hash:7].[ext]')
         }
-      },
-      {
-        test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
-        loader:'url-loader',
-        options:{
-          limit: 10000,
-          outputPath: utils.assetsPath('fonts'),//决定打包出来的文件的路径 在 dist 下的路径
-          publicPath:'../fonts/',
-          name:'[name].[ext]'
-        }
       }
     ]
   },
