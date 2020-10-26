@@ -32,8 +32,7 @@
       </v-layer>
       <v-layer v-if="!isEmpty(currentButtonId)">
         <v-rect :config="getButtonConfig(currentButton, 'lightcyan')" ref="currentButtonRect"></v-rect>
-        <v-text :config="getTextConfig(currentButton, firstNotEmpty(currentButton.alias, currentButton.key))"
-                ref="currentButtonText"></v-text>
+        <v-text :config="getTextConfig(currentButton, firstNotEmpty(currentButton.alias, currentButton.key))"></v-text>
       </v-layer>
     </v-stage>
     <el-drawer
@@ -160,6 +159,7 @@
         drawer: false,
         landscape: false,
         currentButtonId: '',
+        cachedCurrentButtonId: '',
         currentButton: {
           key: '',
           alias: '',
@@ -372,13 +372,9 @@
         event.cancelBubble = true;
       },
       onActivated: function (button) {
-        if (this.isEmpty(this.currentButtonId)) {
-          this.$nextTick(() => {
-            this.$nextTick(() => {
-              this.$refs.currentButtonRect.getNode().cache();
-              this.$refs.currentButtonText.getNode().cache();
-            });
-          });
+        if (this.currentButtonId !== this.cachedCurrentButtonId && this.$refs.currentButtonRect != null) {
+          this.$refs.currentButtonRect.getNode().cache();
+          this.cachedCurrentButtonId = this.currentButtonId;
         }
         this.currentButton = button;
         this.currentButtonId = button.id;
@@ -473,6 +469,16 @@
       //判断字符是否为空的方法
       isEmpty: function (obj) {
         return typeof obj == "undefined" || obj == null || obj === "";
+      },
+      saveHistory: function (newConfig) {
+        this.configHistory[this.configIndex + 1] = this.deepCopy(newConfig);
+        this.configIndex++;
+      },
+      revoke: function () {
+        this.configIndex--;
+      },
+      redo: function () {
+        this.configIndex++;
       }
     }
   }
