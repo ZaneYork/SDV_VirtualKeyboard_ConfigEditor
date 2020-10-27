@@ -1,3 +1,5 @@
+const CompressionWebpackPlugin = require('compression-webpack-plugin')
+
 module.exports = {
     pluginOptions: {
         i18n: {
@@ -9,6 +11,18 @@ module.exports = {
     },
     publicPath: process.env.NODE_ENV === 'production' ? '' : '/',
     productionSourceMap: false,
+    configureWebpack: config => {
+        if (process.env.NODE_ENV === 'production') {
+            config.plugins.push(
+                new CompressionWebpackPlugin({
+                    // 正在匹配需要压缩的文件后缀
+                    test: /\.(js|css|svg|woff|ttf|json|html)$/,
+                    threshold: 10240,
+                    deleteOriginalAssets: true
+                })
+            )
+        }
+    },
     chainWebpack: config => {
         if (process.env.NODE_ENV === 'production') {
             config.output.filename('js/[name].js').end();

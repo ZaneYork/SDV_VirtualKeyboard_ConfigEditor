@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <VirtualKeyboard/>
+    <VirtualKeyboard />
   </div>
 </template>
 

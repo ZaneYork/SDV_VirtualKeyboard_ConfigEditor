@@ -1,38 +1,54 @@
 <template>
   <div>
-    <v-stage :config="{height: height, width: width}" @tap="onParentClick" @click="onParentClick"
-             :style="{transform: 'scale(' + scale +')', 'transform-origin': '0 0', 'margin-bottom': '-' + height*(1-scale) + 'px'}">
+    <v-stage
+      :config="{height: height, width: width}"
+      :style="{transform: 'scale(' + scale +')', 'transform-origin': '0 0', 'margin-bottom': '-' + height*(1-scale) + 'px'}"
+      @tap="onParentClick"
+      @click="onParentClick"
+    >
       <v-layer>
         <v-rect
-          :config="{x:0,y:0,width:width,height:height,stroke: 'cyan',strokeWidth: 1 / this.scale, dash: [5 / this.scale, 5 / this.scale],preventDefault:false}"></v-rect>
+          :config="{x:0,y:0,width:width,height:height,stroke: 'cyan',strokeWidth: 1 / scale, dash: [5 / scale, 5 / scale],preventDefault:false}"
+        />
         <v-rect
-          :config="{x:4,y:16,width:slotSize+24,height:slotSize*24+24,stroke: 'gold',strokeWidth: 1 / this.scale, dash: [3 / this.scale, 3 / this.scale],preventDefault:false}"></v-rect>
+          :config="{x:4,y:16,width:slotSize+24,height:slotSize*24+24,stroke: 'gold',strokeWidth: 1 / scale, dash: [3 / scale, 3 / scale],preventDefault:false}"
+        />
         <v-rect
-          :config="{x:16,y:height - slotSize - 28,width:slotSize*24+24,height:slotSize+24,stroke: 'gold',strokeWidth: 1 / this.scale, dash: [3 / this.scale, 3 / this.scale],preventDefault:false}"></v-rect>
-        <v-group @tap="toggle" @click="toggle">
-          <v-rect :config="getButtonConfig(config.vToggle, 'lightyellow')"></v-rect>
-          <v-text :config="getTextConfig(config.vToggle, $t('toggle'))"></v-text>
+          :config="{x:16,y:height - slotSize - 28,width:slotSize*24+24,height:slotSize+24,stroke: 'gold',strokeWidth: 1 / scale, dash: [3 / scale, 3 / scale],preventDefault:false}"
+        />
+        <v-group
+          @tap="toggle"
+          @click="toggle"
+        >
+          <v-rect :config="getButtonConfig(config.vToggle, 'lightyellow')" />
+          <v-text :config="getTextConfig(config.vToggle, $t('toggle'))" />
         </v-group>
       </v-layer>
       <v-layer>
-        <v-group v-for="button in buttonsWithoutCurrent" :key="firstNotEmpty(button.id, button.key)"
-                 @tap="() => onActivated(button)"
-                 @click="() => onActivated(button)">
-          <v-rect :config="getButtonConfig(button, 'darkorange')"></v-rect>
-          <v-text :config="getTextConfig(button, firstNotEmpty(button.alias, button.key))"></v-text>
+        <v-group
+          v-for="button in buttonsWithoutCurrent"
+          :key="firstNotEmpty(button.id, button.key)"
+          @tap="() => onActivated(button)"
+          @click="() => onActivated(button)"
+        >
+          <v-rect :config="getButtonConfig(button, 'darkorange')" />
+          <v-text :config="getTextConfig(button, firstNotEmpty(button.alias, button.key))" />
         </v-group>
       </v-layer>
       <v-layer v-if="toggleState">
-        <v-group v-for="button in buttonsExtendWithoutCurrent" :key="firstNotEmpty(button.id, button.key)"
-                 @tap="() => onActivated(button)"
-                 @click="() => onActivated(button)">
-          <v-rect :config="getButtonConfig(button, 'lightyellow')"></v-rect>
-          <v-text :config="getTextConfig(button, firstNotEmpty(button.alias, button.key))"></v-text>
+        <v-group
+          v-for="button in buttonsExtendWithoutCurrent"
+          :key="firstNotEmpty(button.id, button.key)"
+          @tap="() => onActivated(button)"
+          @click="() => onActivated(button)"
+        >
+          <v-rect :config="getButtonConfig(button, 'lightyellow')" />
+          <v-text :config="getTextConfig(button, firstNotEmpty(button.alias, button.key))" />
         </v-group>
       </v-layer>
       <v-layer v-if="!isEmpty(currentButtonId)">
-        <v-rect :config="getButtonConfig(currentButton, 'lightcyan')"></v-rect>
-        <v-text :config="getTextConfig(currentButton, firstNotEmpty(currentButton.alias, currentButton.key))"></v-text>
+        <v-rect :config="getButtonConfig(currentButton, 'lightcyan')" />
+        <v-text :config="getTextConfig(currentButton, firstNotEmpty(currentButton.alias, currentButton.key))" />
       </v-layer>
     </v-stage>
     <el-drawer
@@ -40,105 +56,140 @@
       :visible.sync="drawer"
       direction="rtl"
       size="40%"
-      :with-header="true">
+      :with-header="true"
+    >
       <el-form label-width="50px">
         <el-form-item :label="$t('X')">
           <el-slider
             v-model="currentButton.rectangle.X"
-            :max="width" :min="0" :step="5"
-            show-input>
-          </el-slider>
+            :max="width"
+            :min="0"
+            :step="5"
+            show-input
+          />
         </el-form-item>
         <el-form-item :label="$t('Y')">
           <el-slider
             v-model="currentButton.rectangle.Y"
-            :max="height" :min="0" :step="5"
-            show-input>
-          </el-slider>
+            :max="height"
+            :min="0"
+            :step="5"
+            show-input
+          />
         </el-form-item>
         <el-form-item :label="$t('Width')">
           <el-slider
             v-model="currentButton.rectangle.Width"
-            :max="width" :min="5" :step="5"
-            show-input>
-          </el-slider>
+            :max="width"
+            :min="5"
+            :step="5"
+            show-input
+          />
         </el-form-item>
         <el-form-item :label="$t('Height')">
           <el-slider
             v-model="currentButton.rectangle.Height"
-            :max="height" :min="5" :step="5"
-            show-input>
-          </el-slider>
+            :max="height"
+            :min="5"
+            :step="5"
+            show-input
+          />
         </el-form-item>
       </el-form>
     </el-drawer>
-    <el-button v-if="landscape && !isEmpty(currentButtonId)"
-               type="primary" icon="el-icon-edit" circle @click="drawer=true"
-               class="button-float"></el-button>
+    <el-button
+      v-if="landscape && !isEmpty(currentButtonId)"
+      type="primary"
+      icon="el-icon-edit"
+      circle
+      class="button-float"
+      @click="drawer=true"
+    />
     <el-form label-width="80px">
       <el-form-item :label="$t('key')">
         <el-autocomplete
-          class="inline-input"
           v-model="currentButton.key"
+          class="inline-input"
           :fetch-suggestions="querySearch"
           :placeholder="$t('key')"
-        ></el-autocomplete>
+        />
       </el-form-item>
       <el-form-item :label="$t('alias')">
         <el-col :span="10">
-          <el-input v-model="currentButton.alias" :placeholder="$t('alias')"></el-input>
+          <el-input
+            v-model="currentButton.alias"
+            :placeholder="$t('alias')"
+          />
         </el-col>
       </el-form-item>
       <el-form-item :label="$t('command')">
         <el-col :span="10">
-          <el-input v-model="currentButton.command" :placeholder="$t('command')"></el-input>
+          <el-input
+            v-model="currentButton.command"
+            :placeholder="$t('command')"
+          />
         </el-col>
       </el-form-item>
       <el-form-item :label="$t('transparency')">
-        <el-row>
-          <el-col :span="2">
-            <el-color-picker v-model="color" show-alpha disabled></el-color-picker>
-          </el-col>
-          <el-col :span="22">
-            <el-slider
-              v-model="currentButton.transparency"
-              :max="1" :min="0" :step="0.01"
-              show-input>
-            </el-slider>
-          </el-col>
-        </el-row>
+        <el-col>
+          <el-slider
+            v-model="currentButton.transparency"
+            :max="1"
+            :min="0"
+            :step="0.01"
+            show-input
+          />
+        </el-col>
       </el-form-item>
       <el-form-item :label="$t('X')">
         <el-slider
           v-model="currentButton.rectangle.X"
-          :max="width" :min="0" :step="5"
-          show-input>
-        </el-slider>
+          :max="width"
+          :min="0"
+          :step="5"
+          show-input
+        />
       </el-form-item>
       <el-form-item :label="$t('Y')">
         <el-slider
           v-model="currentButton.rectangle.Y"
-          :max="height" :min="0" :step="5"
-          show-input>
-        </el-slider>
+          :max="height"
+          :min="0"
+          :step="5"
+          show-input
+        />
       </el-form-item>
       <el-form-item :label="$t('Width')">
         <el-slider
           v-model="currentButton.rectangle.Width"
-          :max="width" :min="5" :step="5"
-          show-input>
-        </el-slider>
+          :max="width"
+          :min="5"
+          :step="5"
+          show-input
+        />
       </el-form-item>
       <el-form-item :label="$t('Height')">
         <el-slider
           v-model="currentButton.rectangle.Height"
-          :max="height" :min="5" :step="5"
-          show-input>
-        </el-slider>
+          :max="height"
+          :min="5"
+          :step="5"
+          show-input
+        />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="onAddButton">{{$t('add')}}</el-button>
-        <el-button type="danger" @click="onRemoveButton">{{$t('remove')}}</el-button>
+        <el-button
+          type="primary"
+          @click="onAddButton"
+        >
+          {{ $t('add') }}
+        </el-button>
+        <el-button
+          type="danger"
+          @click="onRemoveButton"
+        >
+          {{ $t('remove') }}
+        </el-button>
       </el-form-item>
     </el-form>
   </div>
@@ -174,9 +225,6 @@
       }
     },
     computed: {
-      color: function () {
-        return 'rgba(255,171,0,' + this.currentButton.transparency + ')';
-      },
       buttonsWithoutCurrent: function () {
         if(!this.config.buttons)
           return {}
@@ -358,16 +406,6 @@
       //判断字符是否为空的方法
       isEmpty: function (obj) {
         return typeof obj == "undefined" || obj == null || obj === "";
-      },
-      saveHistory: function (newConfig) {
-        this.configHistory[this.configIndex + 1] = this.deepCopy(newConfig);
-        this.configIndex++;
-      },
-      revoke: function () {
-        this.configIndex--;
-      },
-      redo: function () {
-        this.configIndex++;
       }
     }
   }
