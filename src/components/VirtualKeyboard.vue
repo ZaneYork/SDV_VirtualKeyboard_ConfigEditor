@@ -100,7 +100,7 @@
     <el-button
       v-if="landscape && !isEmpty(currentButtonId)"
       type="primary"
-      icon="el-icon-edit"
+      icon="el-icon-set-up"
       circle
       class="button-float"
       @click="drawer=true"
