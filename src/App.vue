@@ -5,14 +5,14 @@
 </template>
 
 <script>
-import VirtualKeyboard from './components/VirtualKeyboard'
+  import VirtualKeyboard from './components/VirtualKeyboard'
 
-export default {
-  name: 'App',
-  components: {
-    VirtualKeyboard
+  export default {
+    name: 'App',
+    components: {
+      VirtualKeyboard
+    }
   }
-}
 </script>
 
 <style>

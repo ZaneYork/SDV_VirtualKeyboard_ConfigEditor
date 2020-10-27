@@ -1,0 +1,13 @@
+{
+  "toggle": "Toggle",
+  "add": "ADD",
+  "remove": "REMOVE",
+  "key": "Key",
+  "alias": "Alias",
+  "command": "Command",
+  "transparency": "Transparency",
+  "X": "X",
+  "Y": "Y",
+  "Width": "Width",
+  "Height": "Height"
+}

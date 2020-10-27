@@ -15,16 +15,16 @@
         </v-group>
       </v-layer>
       <v-layer>
-        <v-group v-for="button in config.buttons" :key="firstNotEmpty(button.id, button.key)"
-                 v-if="button.id !== currentButtonId" @tap="() => onActivated(button)"
+        <v-group v-for="button in buttonsWithoutCurrent" :key="firstNotEmpty(button.id, button.key)"
+                 @tap="() => onActivated(button)"
                  @click="() => onActivated(button)">
           <v-rect :config="getButtonConfig(button, 'darkorange')"></v-rect>
           <v-text :config="getTextConfig(button, firstNotEmpty(button.alias, button.key))"></v-text>
         </v-group>
       </v-layer>
       <v-layer v-if="toggleState">
-        <v-group v-for="button in config.buttonsExtend" :key="firstNotEmpty(button.id, button.key)"
-                 v-if="button.id !== currentButtonId" @tap="() => onActivated(button)"
+        <v-group v-for="button in buttonsExtendWithoutCurrent" :key="firstNotEmpty(button.id, button.key)"
+                 @tap="() => onActivated(button)"
                  @click="() => onActivated(button)">
           <v-rect :config="getButtonConfig(button, 'lightyellow')"></v-rect>
           <v-text :config="getTextConfig(button, firstNotEmpty(button.alias, button.key))"></v-text>
@@ -146,6 +146,7 @@
 
 <script>
   import {v4 as uuidv4} from 'uuid';
+  import hintKeys from '../assets/hint-keys.json';
 
   export default {
     data: function () {
@@ -167,132 +168,25 @@
           rectangle: {X: 0, Y: 0, Width: 90, Height: 90},
           transparency: 0.5
         },
-        options: [
-          {label: "None", value: "None"},
-          {label: "MouseLeft", value: "MouseLeft"},
-          {label: "MouseRight", value: "MouseRight"},
-          {label: "MouseMiddle", value: "MouseMiddle"},
-          {label: "MouseX1", value: "MouseX1"},
-          {label: "MouseX2", value: "MouseX2"},
-          {label: "A", value: "A"},
-          {label: "B", value: "B"},
-          {label: "C", value: "C"},
-          {label: "CapsLock", value: "CapsLock"},
-          {label: "D", value: "D"},
-          {label: "D0", value: "D0"},
-          {label: "D1", value: "D1"},
-          {label: "D2", value: "D2"},
-          {label: "D3", value: "D3"},
-          {label: "D4", value: "D4"},
-          {label: "D5", value: "D5"},
-          {label: "D6", value: "D6"},
-          {label: "D7", value: "D7"},
-          {label: "D8", value: "D8"},
-          {label: "D9", value: "D9"},
-          {label: "Decimal", value: "Decimal"},
-          {label: "Delete", value: "Delete"},
-          {label: "Divide", value: "Divide"},
-          {label: "Down", value: "Down"},
-          {label: "E", value: "E"},
-          {label: "End", value: "End"},
-          {label: "Enter", value: "Enter"},
-          {label: "Escape", value: "Escape"},
-          {label: "F", value: "F"},
-          {label: "F1", value: "F1"},
-          {label: "F10", value: "F10"},
-          {label: "F11", value: "F11"},
-          {label: "F12", value: "F12"},
-          {label: "F2", value: "F2"},
-          {label: "F3", value: "F3"},
-          {label: "F4", value: "F4"},
-          {label: "F5", value: "F5"},
-          {label: "F6", value: "F6"},
-          {label: "F7", value: "F7"},
-          {label: "F8", value: "F8"},
-          {label: "F9", value: "F9"},
-          {label: "G", value: "G"},
-          {label: "H", value: "H"},
-          {label: "Help", value: "Help"},
-          {label: "Home", value: "Home"},
-          {label: "I", value: "I"},
-          {label: "Insert", value: "Insert"},
-          {label: "J", value: "J"},
-          {label: "K", value: "K"},
-          {label: "L", value: "L"},
-          {label: "Left", value: "Left"},
-          {label: "LeftAlt", value: "LeftAlt"},
-          {label: "LeftControl", value: "LeftControl"},
-          {label: "LeftShift", value: "LeftShift"},
-          {label: "LeftWindows", value: "LeftWindows"},
-          {label: "M", value: "M"},
-          {label: "Multiply", value: "Multiply"},
-          {label: "N", value: "N"},
-          {label: "NumLock", value: "NumLock"},
-          {label: "NumPad0", value: "NumPad0"},
-          {label: "NumPad1", value: "NumPad1"},
-          {label: "NumPad2", value: "NumPad2"},
-          {label: "NumPad3", value: "NumPad3"},
-          {label: "NumPad4", value: "NumPad4"},
-          {label: "NumPad5", value: "NumPad5"},
-          {label: "NumPad6", value: "NumPad6"},
-          {label: "NumPad7", value: "NumPad7"},
-          {label: "NumPad8", value: "NumPad8"},
-          {label: "NumPad9", value: "NumPad9"},
-          {label: "O", value: "O"},
-          {label: "OemBackslash", value: "OemBackslash"},
-          {label: "OemClear", value: "OemClear"},
-          {label: "OemCloseBrackets", value: "OemCloseBrackets"},
-          {label: "OemComma", value: "OemComma"},
-          {label: "OemCopy", value: "OemCopy"},
-          {label: "OemMinus", value: "OemMinus"},
-          {label: "OemOpenBrackets", value: "OemOpenBrackets"},
-          {label: "OemPeriod", value: "OemPeriod"},
-          {label: "OemPipe", value: "OemPipe"},
-          {label: "OemPlus", value: "OemPlus"},
-          {label: "OemQuestion", value: "OemQuestion"},
-          {label: "OemQuotes", value: "OemQuotes"},
-          {label: "OemSemicolon", value: "OemSemicolon"},
-          {label: "OemTilde", value: "OemTilde"},
-          {label: "P", value: "P"},
-          {label: "PageDown", value: "PageDown"},
-          {label: "PageUp", value: "PageUp"},
-          {label: "Pause", value: "Pause"},
-          {label: "Play", value: "Play"},
-          {label: "Print", value: "Print"},
-          {label: "PrintScreen", value: "PrintScreen"},
-          {label: "Q", value: "Q"},
-          {label: "R", value: "R"},
-          {label: "Right", value: "Right"},
-          {label: "RightAlt", value: "RightAlt"},
-          {label: "RightControl", value: "RightControl"},
-          {label: "RightShift", value: "RightShift"},
-          {label: "RightWindows", value: "RightWindows"},
-          {label: "S", value: "S"},
-          {label: "Scroll", value: "Scroll"},
-          {label: "Select", value: "Select"},
-          {label: "Separator", value: "Separator"},
-          {label: "Sleep", value: "Sleep"},
-          {label: "Space", value: "Space"},
-          {label: "Subtract", value: "Subtract"},
-          {label: "T", value: "T"},
-          {label: "Tab", value: "Tab"},
-          {label: "U", value: "U"},
-          {label: "Up", value: "Up"},
-          {label: "V", value: "V"},
-          {label: "VolumeDown", value: "VolumeDown"},
-          {label: "VolumeMute", value: "VolumeMute"},
-          {label: "VolumeUp", value: "VolumeUp"},
-          {label: "W", value: "W"},
-          {label: "X", value: "X"},
-          {label: "Y", value: "Y"},
-          {label: "Z", value: "Z"}
-        ],
+        options: hintKeys.map(key => {
+          return {label: key, value: key}
+        }),
         config: {}
       }
     },
     computed: {
       color: function () {
         return 'rgba(255,171,0,' + this.currentButton.transparency + ')';
+      },
+      buttonsWithoutCurrent: function () {
+        if(!this.config.buttons)
+          return {}
+        return this.config.buttons.filter(item => item.id !== this.currentButtonId);
+      },
+      buttonsExtendWithoutCurrent: function () {
+        if(!this.config.buttonsExtend)
+          return {}
+        return this.config.buttonsExtend.filter(item => item.id !== this.currentButtonId);
       }
     },
     mounted() {
