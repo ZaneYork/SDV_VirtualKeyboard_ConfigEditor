@@ -31,7 +31,7 @@
         </v-group>
       </v-layer>
       <v-layer v-if="!isEmpty(currentButtonId)">
-        <v-rect :config="getButtonConfig(currentButton, 'lightcyan')" ref="currentButtonRect"></v-rect>
+        <v-rect :config="getButtonConfig(currentButton, 'lightcyan')"></v-rect>
         <v-text :config="getTextConfig(currentButton, firstNotEmpty(currentButton.alias, currentButton.key))"></v-text>
       </v-layer>
     </v-stage>
@@ -41,7 +41,7 @@
       direction="rtl"
       size="40%"
       :with-header="true">
-      <el-form ref="form" label-width="50px">
+      <el-form label-width="50px">
         <el-form-item :label="$t('X')">
           <el-slider
             v-model="currentButton.rectangle.X"
@@ -75,7 +75,7 @@
     <el-button v-if="landscape && !isEmpty(currentButtonId)"
                type="primary" icon="el-icon-edit" circle @click="drawer=true"
                class="button-float"></el-button>
-    <el-form ref="form" label-width="80px">
+    <el-form label-width="80px">
       <el-form-item :label="$t('key')">
         <el-autocomplete
           class="inline-input"
@@ -160,7 +160,6 @@
         drawer: false,
         landscape: false,
         currentButtonId: '',
-        cachedCurrentButtonId: '',
         currentButton: {
           key: '',
           alias: '',
@@ -266,10 +265,6 @@
         event.cancelBubble = true;
       },
       onActivated: function (button) {
-        if (this.currentButtonId !== this.cachedCurrentButtonId && this.$refs.currentButtonRect != null) {
-          this.$refs.currentButtonRect.getNode().cache();
-          this.cachedCurrentButtonId = this.currentButtonId;
-        }
         this.currentButton = button;
         this.currentButtonId = button.id;
       },
