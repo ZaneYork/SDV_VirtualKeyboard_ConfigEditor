@@ -51,6 +51,7 @@
   "browserslist": [
     "> 1%",
     "last 2 versions",
-    "not dead"
+    "not dead",
+    "android >= 4.4"
   ]
 }
